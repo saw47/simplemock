@@ -1,39 +1,41 @@
 package com.github.saw47.simplemock;
 
-import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
-
-import com.google.android.material.snackbar.Snackbar;
-
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.renderscript.ScriptGroup;
 import android.util.Log;
 import android.view.View;
-
-import androidx.core.view.WindowCompat;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
-
 import com.github.saw47.simplemock.databinding.ActivityMainBinding;
-
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Toast;
+
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
-    private double latitude;
-    private double longitude;
-    private final String LOG_TAG = "SLM";
 
+    private float latitude;
+    private float longitude;
+    private boolean state;
 
-    @SuppressLint("DefaultLocale")
+    private final String LOG_TAG = "SLMACT";
+
+    public static final String PREFERENCES_LAT = "latitude";
+    public static final String PREFERENCES_LON = "longitude";
+    public static final String PREFERENCES_STATE = "state";
+    private SharedPreferences mSettings;
+
+    BroadcastReceiver br;
+    public final static String STATE_SERVICE = "state";
+    public final static String BROADCAST_ACTION = "com.github.saw47.simplemock.servicebroadcast";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,22 +43,47 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        if (savedInstanceState != null) {
-            latitude = savedInstanceState.getDouble("latitude");
-            longitude = savedInstanceState.getDouble("longitude");
-            Log.i(LOG_TAG, "latitude -> " + latitude + "longitude -> " + longitude);
-            binding.latInput.setText(String.format("%.5f", latitude));
-            binding.lonInput.setText(String.format("%.5f", longitude));
+        br = new BroadcastReceiver() {
+            public void onReceive(Context context, Intent intent) {
+                state = intent.getBooleanExtra(STATE_SERVICE, false);
+                setButtonColor(state);
+                Log.d(LOG_TAG, "BroadcastReceiver onReceive , state - " + state);
+                    }
+        };
+
+        IntentFilter filter = new IntentFilter(BROADCAST_ACTION);
+        registerReceiver(br, filter);
+
+        mSettings = getPreferences(Context.MODE_PRIVATE);
+
+        if (mSettings.contains(PREFERENCES_STATE)) {
+            state = mSettings.getBoolean(PREFERENCES_STATE, false);
+        } else {
+            state = false;
         }
+
+        if(mSettings.contains(PREFERENCES_LAT)) {
+            latitude = mSettings.getFloat(PREFERENCES_LAT, 0.00F);
+            binding.latInput.setText(String.format(Locale.US, "%.5f", latitude));
+            Log.d(LOG_TAG, "latitude " + latitude);
+        }
+
+        if (mSettings.contains(PREFERENCES_LON)) {
+            longitude = mSettings.getFloat(PREFERENCES_LON, 0.00F);
+            binding.lonInput.setText(String.format(Locale.US,"%.5f", longitude));
+            Log.d(LOG_TAG, "longitude " + longitude);
+        }
+
+        setButtonColor(state);
 
         binding.latInput.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             public void onFocusChange(View v, boolean hasFocus) {
                 if(!hasFocus) {
                     try {
-                        latitude = Double.parseDouble(binding.latInput.getText().toString());
-                        Log.i(LOG_TAG, "Value latInput is double -> " + latitude);
+                        latitude = Float.parseFloat(binding.latInput.getText().toString());
+                        Log.i(LOG_TAG, "onFocusChange latInput is double -> " + latitude);
                     } catch (NumberFormatException | NullPointerException e) {
-                        Log.i(LOG_TAG, "Value latInput is not double -> " + e);
+                        Log.i(LOG_TAG, "onFocusChange latInput is not double -> " + e);
                     }
                 }
             }
@@ -66,10 +93,10 @@ public class MainActivity extends AppCompatActivity {
             public void onFocusChange(View v, boolean hasFocus) {
                 if(!hasFocus) {
                     try {
-                        longitude = Double.parseDouble(binding.lonInput.getText().toString());
-                        Log.i(LOG_TAG, "Value lonInput is double -> " + longitude);
+                        longitude = Float.parseFloat(binding.lonInput.getText().toString());
+                        Log.i(LOG_TAG, "onFocusChange lonInput is double -> " + longitude);
                     } catch (NumberFormatException | NullPointerException e) {
-                        Log.i(LOG_TAG, "Value lonInput is not double -> " + e);
+                        Log.i(LOG_TAG, "onFocusChange lonInput is not double -> " + e);
                     }
                 }
             }
@@ -77,18 +104,24 @@ public class MainActivity extends AppCompatActivity {
 
         binding.onButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Toast.makeText(v.getContext(), "clicked ON", Toast.LENGTH_LONG).show();
+                clearFocus();
+                Intent intent = new Intent(MainActivity.this, SimpleMockService.class);
+                intent.putExtra("latitude", latitude);
+                intent.putExtra("longitude", longitude);
+                startService(intent);
             }
         });
 
         binding.offButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Toast.makeText(v.getContext(), "clicked OFF", Toast.LENGTH_LONG).show();
+                clearFocus();
+                stopService(new Intent(MainActivity.this, SimpleMockService.class));
             }
         });
 
         binding.mainContainer.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                clearFocus();
                 InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
             }
@@ -96,54 +129,50 @@ public class MainActivity extends AppCompatActivity {
 
         binding.collapseButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                clearFocus();
                 onBackPressed();
             }
         });
     }
 
     @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        Log.i(LOG_TAG, "onSaveInstanceState -> "+latitude+" "+longitude);
-        outState.putDouble("latitude", latitude);
-        outState.putDouble("longitude", longitude);
+    protected void onPause() {
+        super.onPause();
+        SharedPreferences.Editor editor = mSettings.edit();
+        editor.putFloat(PREFERENCES_LAT, latitude);
+        editor.putFloat(PREFERENCES_LON, longitude);
+        editor.putBoolean(PREFERENCES_STATE, state);
+        editor.apply();
+        Log.d(LOG_TAG, "onPause; latitude " + latitude + "; longitude " + longitude);
     }
 
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        latitude = savedInstanceState.getDouble("latitude");
-        longitude = savedInstanceState.getDouble("longitude");
-        Log.i(LOG_TAG, "onSaveInstanceState -> "+latitude+" "+longitude);
-    }
-
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.d(LOG_TAG, "onDestroy");
-    }
-
-    protected void onPause() {
-        super.onPause();
-        Log.d(LOG_TAG, "onPause");
-    }
-
-    protected void onRestart() {
-        super.onRestart();
-        Log.d(LOG_TAG, "onRestart");
-    }
-
     protected void onResume() {
         super.onResume();
-        Log.d(LOG_TAG, "onResume ");
     }
 
-    protected void onStart() {
-        super.onStart();
-        Log.d(LOG_TAG, "onStart");
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(br);
     }
 
-    protected void onStop() {
-        super.onStop();
-        Log.d(LOG_TAG, "onStop");
+    private void clearFocus() {
+        binding.latInput.clearFocus();
+        binding.lonInput.clearFocus();
     }
+    private void setButtonColor(boolean state) {
+        if (state) {
+            binding.onButton.setBackgroundColor(getResources().getColor(R.color.selected_orange));
+            binding.offButton.setBackgroundColor(getResources().getColor(R.color.unselected_orange));
+            binding.onButton.setTextColor(getResources().getColor(R.color.black));
+            binding.offButton.setTextColor(getResources().getColor(R.color.white));
+        } else {
+            binding.onButton.setBackgroundColor(getResources().getColor(R.color.unselected_orange));
+            binding.offButton.setBackgroundColor(getResources().getColor(R.color.selected_orange));
+            binding.onButton.setTextColor(getResources().getColor(R.color.white));
+            binding.offButton.setTextColor(getResources().getColor(R.color.black));
+        }
+    }
+
 }

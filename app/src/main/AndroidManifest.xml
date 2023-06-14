@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
@@ -12,6 +13,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SimpleMock"
         tools:targetApi="31">
+        <service
+            android:name=".SimpleMockService"
+            android:enabled="true"
+            android:exported="true">
+        </service>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
