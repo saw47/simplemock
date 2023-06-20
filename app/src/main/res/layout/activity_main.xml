@@ -111,10 +111,23 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintStart_toEndOf="@id/onButton"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/autofillButton"
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginBottom="128dp"
             android:text="@string/off"
+            android:textSize="48sp"
+            >
+        </Button>
+
+        <Button
+            android:id="@+id/autofillButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toEndOf="@id/offButton"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginBottom="128dp"
+            android:text="@string/autofill"
             android:textSize="48sp"
             >
         </Button>

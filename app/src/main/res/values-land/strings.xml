@@ -2,4 +2,5 @@
 <resources>
     <string name="on">ON</string>
     <string name="off">OFF</string>
+    <string name="autofill">Экибастуз</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.github.saw47.simplemock;
 
+import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -15,6 +16,7 @@ import android.view.View;
 import com.github.saw47.simplemock.databinding.ActivityMainBinding;
 import android.view.inputmethod.InputMethodManager;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
@@ -43,6 +45,12 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        ActivityManager am = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
+        ArrayList<ActivityManager.RunningServiceInfo> rsiList = (ArrayList<ActivityManager.RunningServiceInfo>) am.getRunningServices (Integer.MAX_VALUE);
+        for (ActivityManager.RunningServiceInfo rsi: rsiList) {
+            state = rsi.service.getPackageName().equals("com.github.saw47.simplemock");
+        }
+
         br = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 state = intent.getBooleanExtra(STATE_SERVICE, false);
@@ -50,27 +58,20 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(LOG_TAG, "BroadcastReceiver onReceive , state - " + state);
                     }
         };
-
         IntentFilter filter = new IntentFilter(BROADCAST_ACTION);
         registerReceiver(br, filter);
 
         mSettings = getPreferences(Context.MODE_PRIVATE);
 
-        if (mSettings.contains(PREFERENCES_STATE)) {
-            state = mSettings.getBoolean(PREFERENCES_STATE, false);
-        } else {
-            state = false;
-        }
-
         if(mSettings.contains(PREFERENCES_LAT)) {
             latitude = mSettings.getFloat(PREFERENCES_LAT, 0.00F);
-            binding.latInput.setText(String.format(Locale.US, "%.5f", latitude));
+            binding.latInput.setText(String.format(Locale.US, "%.6f", latitude));
             Log.d(LOG_TAG, "latitude " + latitude);
         }
 
         if (mSettings.contains(PREFERENCES_LON)) {
             longitude = mSettings.getFloat(PREFERENCES_LON, 0.00F);
-            binding.lonInput.setText(String.format(Locale.US,"%.5f", longitude));
+            binding.lonInput.setText(String.format(Locale.US,"%.6f", longitude));
             Log.d(LOG_TAG, "longitude " + longitude);
         }
 
@@ -119,6 +120,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        binding.autofillButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                latitude = 51.729692F;
+                longitude = 75.326629F;
+                binding.latInput.setText(String.format(Locale.US,"%.6f", latitude));
+                binding.lonInput.setText(String.format(Locale.US,"%.6f", longitude));
+                clearFocus();
+            }
+        });
+
         binding.mainContainer.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 clearFocus();
@@ -141,7 +152,6 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = mSettings.edit();
         editor.putFloat(PREFERENCES_LAT, latitude);
         editor.putFloat(PREFERENCES_LON, longitude);
-        editor.putBoolean(PREFERENCES_STATE, state);
         editor.apply();
         Log.d(LOG_TAG, "onPause; latitude " + latitude + "; longitude " + longitude);
     }
@@ -162,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
         binding.lonInput.clearFocus();
     }
     private void setButtonColor(boolean state) {
+            binding.autofillButton.setBackgroundColor(getResources().getColor(R.color.unselected_orange));
         if (state) {
             binding.onButton.setBackgroundColor(getResources().getColor(R.color.selected_orange));
             binding.offButton.setBackgroundColor(getResources().getColor(R.color.unselected_orange));
