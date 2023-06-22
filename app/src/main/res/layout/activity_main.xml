@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -11,99 +12,162 @@
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/unselected_orange"
+        android:background="@color/background"
         android:fitsSystemWindows="true">
 
-        <ImageButton
-            android:id="@+id/collapse_button"
-            android:layout_width="wrap_content"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="12dp"
-            android:paddingStart="24dp"
-            android:src="@drawable/baseline_arrow_back_ios_48"
-            android:background="@android:color/transparent"
-            android:layout_gravity="start"
-            tools:ignore="RtlSymmetry">
-        </ImageButton>
+            >
+            <ImageButton
+                android:id="@+id/collapse_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:src="@drawable/baseline_arrow_back_ios_48"
+                android:background="@android:color/transparent"
+                android:layout_margin="12dp"
+                tools:ignore="RtlSymmetry"
+                app:tint="@color/text_color_base">
+            </ImageButton>
+            <ImageButton
+                android:id="@+id/man"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_margin="12dp"
+                tools:ignore="RtlSymmetry"
+                android:src="@drawable/baseline_info_48"
+                android:background="@android:color/transparent"
+                app:tint="@color/text_color_base"
+                >
+            </ImageButton>
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.appbar.AppBarLayout>
-    
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/mainContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior = "@string/appbar_scrolling_view_behavior"
-        android:background="@color/background_gray"
+        android:background="@color/background"
         >
+
         <TextView
             android:id="@+id/lat_name"
-            app:layout_constraintStart_toStartOf="@id/lon_name"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/lat_inp_cv"
             app:layout_constraintBottom_toTopOf="@id/lon_name"
+            app:layout_constraintTop_toTopOf="parent"
             android:layout_width="240dp"
             android:layout_height="wrap_content"
             android:textSize="48sp"
-            android:layout_marginBottom="24dp"
+            android:layout_marginTop="24dp"
             android:text="@string/latitude"
-            android:textColor="@color/bright_orange"
+            android:textColor="@color/text_color_base"
             >
-
         </TextView>
-        <EditText
-            android:id="@+id/lat_input"
-            android:layout_width="480dp"
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/lat_inp_cv"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintStart_toStartOf="@id/lon_input"
-            android:background="@android:color/white"
-            app:layout_constraintBottom_toTopOf="@id/lon_input"
-            android:layout_marginBottom="24dp"
-            android:textSize="48sp"
-            android:singleLine="true"
-            android:ellipsize="end"
-            android:inputType="phone"
-            android:textColor="@color/black"
+            app:layout_constraintBottom_toBottomOf="@id/lat_name"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/lat_name"
+            app:cardCornerRadius="24dp"
+            android:background="@color/background"
             >
-        </EditText>
+            <EditText
+                android:id="@+id/lat_input"
+                android:layout_width="440dp"
+                android:layout_height="wrap_content"
+                android:background="@color/unselected"
+                android:textSize="48sp"
+                android:singleLine="true"
+                android:maxLength="10"
+                android:inputType="phone"
+                android:paddingStart="24dp"
+                android:textColor="@color/text_color_base"
+                tools:ignore="RtlSymmetry">
+            </EditText>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/inp_field_barrier"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="lat_inp_cv, lat_name"
+            >
+        </androidx.constraintlayout.widget.Barrier>
 
         <TextView
             android:id="@+id/lon_name"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/lon_input"
-            app:layout_constraintBottom_toTopOf="@id/onButton"
+            app:layout_constraintStart_toStartOf="@id/lat_name"
+            app:layout_constraintTop_toBottomOf="@id/inp_field_barrier"
             android:layout_width="240dp"
             android:layout_height="wrap_content"
             android:textSize="48sp"
-            android:layout_marginBottom="24dp"
             android:text="@string/longitude"
-            android:textColor="@color/bright_orange"
+            android:textColor="@color/text_color_base"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="24dp"
             >
 
         </TextView>
-        <EditText
-            android:id="@+id/lon_input"
-            android:layout_width="480dp"
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/lon_inp_cv"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintStart_toEndOf="@id/lon_name"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/onButton"
-            android:background="@android:color/white"
-            android:textSize="48sp"
-            android:layout_margin="24dp"
-            android:singleLine="true"
-            android:ellipsize="end"
-            android:inputType="phone"
-            android:textColor="@color/black"
+            app:layout_constraintBottom_toBottomOf="@id/button_barrier"
+            app:layout_constraintTop_toBottomOf="@id/inp_field_barrier"
+            app:cardCornerRadius="24dp"
+            android:background="@color/background"
             >
-        </EditText>
-        
+            <EditText
+                android:id="@+id/lon_input"
+                android:layout_width="440dp"
+                android:layout_height="wrap_content"
+                android:background="@color/unselected"
+                android:textSize="48sp"
+                android:singleLine="true"
+                android:inputType="phone"
+                android:maxLength="10"
+                android:paddingStart="24dp"
+                android:textColor="@color/text_color_base"
+                tools:ignore="RtlSymmetry">
+            </EditText>
+
+        </androidx.cardview.widget.CardView>
+
+
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/button_barrier"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="lon_name, lon_inp_cv"
+            >
+        </androidx.constraintlayout.widget.Barrier>
+
         <Button
             android:id="@+id/onButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/offButton"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="128dp"
+            app:layout_constraintTop_toBottomOf="@id/button_barrier"
             android:text="@string/on"
             android:textSize="48sp"
+            android:textColor="@color/text_color_base"
+            android:layout_marginTop="24dp"
             >
         </Button>
         <Button
@@ -112,10 +176,12 @@
             android:layout_height="wrap_content"
             app:layout_constraintStart_toEndOf="@id/onButton"
             app:layout_constraintEnd_toStartOf="@id/autofillButton"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/button_barrier"
             android:layout_marginBottom="128dp"
             android:text="@string/off"
             android:textSize="48sp"
+            android:textColor="@color/text_color_base"
+            android:layout_marginTop="24dp"
             >
         </Button>
 
@@ -125,10 +191,12 @@
             android:layout_height="wrap_content"
             app:layout_constraintStart_toEndOf="@id/offButton"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/button_barrier"
             android:layout_marginBottom="128dp"
             android:text="@string/autofill"
             android:textSize="48sp"
+            android:textColor="@color/text_color_base"
+            android:layout_marginTop="24dp"
             >
         </Button>
     </androidx.constraintlayout.widget.ConstraintLayout>

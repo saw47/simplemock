@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="bright_orange">#FC6900</color>
-    <color name="selected_orange">#FA9702</color>
-    <color name="unselected_orange">#F5B67A</color>
-    <color name="background_gray">#706D6B</color>
+    <color name="text_color_base">#121212</color>
+    <color name="text_color_selected">#FFFFFF</color>
+    <color name="selected">#E1511B</color>
+    <color name="unselected">#E8EAED</color>
+    <color name="background">#F4F4F4</color>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
 </resources>
