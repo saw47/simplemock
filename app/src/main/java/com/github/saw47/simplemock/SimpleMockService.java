@@ -121,7 +121,6 @@ public class SimpleMockService extends Service {
                 callBack(true);
             } catch (Exception e) {
                 Log.d(LOG_TAG, "setTestProviderLocation exception -> " + e);
-                Toast.makeText(getApplicationContext(), "" + e, Toast.LENGTH_SHORT).show();
                 callBack(false);
             }
             mHandler.postDelayed(this, 1000);
