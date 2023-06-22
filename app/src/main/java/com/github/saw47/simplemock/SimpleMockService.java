@@ -64,7 +64,6 @@ public class SimpleMockService extends Service {
             Log.d(LOG_TAG, "onCreate end");
         } catch (SecurityException e) {
             Log.d(LOG_TAG, "onCreate " + e);
-            Toast.makeText(this, "" + e, Toast.LENGTH_SHORT).show();
         }
     }
 
