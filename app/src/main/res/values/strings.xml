@@ -12,4 +12,11 @@
     <string name="latitude">Latitude</string>
     <string name="autofill">Ekıbastūz</string>
     <string name="manual">/man</string>
+    <string name="man_text">
+        When you first turn it on, select Simplemock as location mock application.
+        You can do it in android developer settings or use adb command:
+        /* adb shell appops set com.github.saw47.simplemock android:mock_location allow */.
+        Put coordinates or select Ekibastuz, then press ON.
+        Force-stop you navi app in user settings and start app again.
+    </string>
 </resources>

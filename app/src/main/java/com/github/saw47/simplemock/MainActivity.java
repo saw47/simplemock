@@ -1,5 +1,6 @@
 package com.github.saw47.simplemock;
 
+import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,6 +10,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import com.github.saw47.simplemock.databinding.ActivityMainBinding;
@@ -27,9 +29,6 @@ public class MainActivity extends AppCompatActivity {
     private boolean state;
 
     private final String LOG_TAG = "SLMACT";
-    private final String MAN = "When you first turn it on, select Simplemock as location mock application.\n" +
-                               "1. Put coordinates or select Ekibastuz, then press ON.\n" +
-                               "2. Force-stop Navigator in user settings and start it again.";
 
     public static final String PREFERENCES_LAT = "latitude";
     public static final String PREFERENCES_LON = "longitude";
@@ -42,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     public final static String LON_SERVICE = "lon";
     public final static String BROADCAST_ACTION = "com.github.saw47.simplemock.servicebroadcast";
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,8 +71,8 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(LOG_TAG, "onReceive " + latitude + " " + longitude);
                     }
         };
-        registerReceiver(br, new IntentFilter(BROADCAST_ACTION));
 
+        registerReceiver(br, new IntentFilter(BROADCAST_ACTION));
         mSettings = getPreferences(Context.MODE_PRIVATE);
 
         if (!state) {
@@ -174,10 +174,31 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        binding.devInfo.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Log.i(LOG_TAG, "devInfo call");
+                startActivity(new Intent(Settings.ACTION_DEVICE_INFO_SETTINGS));
+            }
+        });
+
+        binding.settings.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Log.i(LOG_TAG, "settings call");
+                startActivity(new Intent(Settings.ACTION_SETTINGS));
+            }
+        });
+
+        binding.devSettings.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Log.i(LOG_TAG, "settings call");
+                startActivity(new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS));
+            }
+        });
+
         binding.man.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Log.i(LOG_TAG, "man call");
-                Toast.makeText(getApplicationContext(), MAN, Toast.LENGTH_LONG).show();
+                startActivity(new Intent(v.getContext(), InfoActivity.class));
             }
         });
     }
