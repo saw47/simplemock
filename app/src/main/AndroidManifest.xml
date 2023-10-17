@@ -33,7 +33,9 @@
         <service
             android:name=".SimpleMockService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true">
+
+        </service>
 
         <activity
             android:name=".MainActivity"
@@ -41,8 +43,6 @@
             android:theme="@style/Theme.SimpleMock">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
     </application>
