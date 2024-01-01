@@ -51,7 +51,7 @@
                 android:layout_margin="12dp"
                 tools:ignore="RtlSymmetry"
                 app:icon="@drawable/baseline_info_48"
-                app:iconGravity="textStart"
+                app:iconGravity="textEnd"
                 >
             </com.google.android.material.button.MaterialButton>
 
@@ -93,7 +93,7 @@
                 android:layout_margin="12dp"
                 >
             </TextView>
-            <ImageButton
+            <ImageView
                 android:id="@+id/semaphore"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -103,8 +103,8 @@
                 android:layout_margin="12dp"
                 tools:ignore="RtlSymmetry"
                 android:background="@android:color/transparent"
-                >
-            </ImageButton>
+                android:contentDescription="@string/semaphore">
+            </ImageView>
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switch_mode"
                 android:layout_width="0dp"
@@ -124,7 +124,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:layout_constraintTop_toBottomOf="@id/switch_mode"
-                tools:visibility="gone"
+                tools:visibility="visible"
                 >
                 <TextView
                     android:id="@+id/lat_name"
@@ -140,20 +140,19 @@
                 </TextView>
                 <androidx.cardview.widget.CardView
                     android:id="@+id/lat_input_cv"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toTopOf="@+id/lon_inp_cv"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/lon_name"
-
                     app:cardCornerRadius="24dp"
                     android:layout_margin="12dp"
                     >
                     <EditText
                         android:id="@+id/latInput"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:minWidth="160dp"
                         android:textSize="24sp"
                         android:singleLine="true"
                         android:maxLength="10"
@@ -179,9 +178,8 @@
                 </TextView>
                 <androidx.cardview.widget.CardView
                     android:id="@+id/lon_inp_cv"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:layout_constraintStart_toEndOf="@id/lon_name"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/lat_input_cv"
                     app:layout_constraintBottom_toBottomOf="@id/button_barrier"
@@ -190,8 +188,9 @@
                     >
                     <EditText
                         android:id="@+id/lon_input"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:minWidth="160dp"
                         android:textSize="24sp"
                         android:singleLine="true"
                         android:maxLength="10"
@@ -250,8 +249,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:layout_constraintTop_toBottomOf="@id/switch_mode"
-                android:visibility="gone"
-                tools:visibility="visible"
+                android:visibility="visible"
+                tools:visibility="gone"
                 >
                 <TextView
                     android:id="@+id/speedText"
@@ -272,14 +271,14 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toTopOf="@id/route_button_barrier"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/speedText"
                     app:cardCornerRadius="24dp"
                     android:layout_margin="12dp"
                     >
                     <EditText
                         android:id="@+id/speedInput"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:minWidth="128dp"
                         android:textSize="24sp"
                         android:singleLine="true"
                         android:maxLength="3"
@@ -298,7 +297,7 @@
                     app:constraint_referenced_ids="speedText, speed_input_cv"
                     >
                 </androidx.constraintlayout.widget.Barrier>
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/onRouteButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -308,8 +307,8 @@
                     android:textSize="24sp"
                     android:layout_margin="12dp"
                     >
-                </Button>
-                <Button
+                </com.google.android.material.button.MaterialButton>
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/offRouteButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -320,8 +319,8 @@
                     android:textSize="24sp"
                     android:layout_margin="12dp"
                     >
-                </Button>
-                <Button
+                </com.google.android.material.button.MaterialButton>
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/pickRouteButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -331,8 +330,7 @@
                     android:textSize="24sp"
                     android:layout_margin="12dp"
                     >
-                </Button>
-
+                </com.google.android.material.button.MaterialButton>
                 <androidx.constraintlayout.widget.Barrier
                     android:id="@+id/picker_result_barrier"
                     android:layout_width="0dp"

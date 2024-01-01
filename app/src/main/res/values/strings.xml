@@ -23,4 +23,5 @@
     <string name="pick">Pick track</string>
     <string name="route">Route mode</string>
     <string name="state">State</string>
+    <string name="semaphore">Semaphore</string>
 </resources>
