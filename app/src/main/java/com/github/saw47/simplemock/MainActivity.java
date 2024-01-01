@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -15,23 +16,24 @@ import android.util.Log;
 import android.view.View;
 import com.github.saw47.simplemock.databinding.ActivityMainBinding;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
+    private final String LOG_TAG = "SLMACT";
 
     private ActivityMainBinding binding;
 
     private float latitude;
     private float longitude;
     private boolean state;
-
-    private final String LOG_TAG = "SLMACT";
+    private boolean route_switch;
+    private boolean is_picked; // TODO not impl
 
     public static final String PREFERENCES_LAT = "latitude";
     public static final String PREFERENCES_LON = "longitude";
+    public static final String PREFERENCES_STATE = "switch";
     private SharedPreferences mSettings;
 
     BroadcastReceiver br;
@@ -47,16 +49,28 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Log.d(LOG_TAG, "onCreate start");
         binding = ActivityMainBinding.inflate(getLayoutInflater());
+        mSettings = getPreferences(Context.MODE_PRIVATE);
+
+        if (mSettings.contains(PREFERENCES_STATE)) {
+            route_switch = mSettings.getBoolean(PREFERENCES_STATE, false);
+            Log.d(LOG_TAG, "PREFERENCES_STATE route switch " + route_switch);
+        }
+
+        setIsPickedAttr(is_picked);
+        setOnRouteSwitchAttr(route_switch);
+        binding.switchMode.setChecked(route_switch);
+
         setContentView(binding.getRoot());
         state = getMockLocationServiceState();
+        set_state_semaphore(state);
 
         br = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 state = intent.getBooleanExtra(STATE_SERVICE, false);
                 Float tmp_latitude = intent.getFloatExtra(LAT_SERVICE, 0.00F);
                 Float tmp_longitude = intent.getFloatExtra(LON_SERVICE, 0.00F);
-                setButtonColor(state);
 
+                set_state_semaphore(state);
                 if (state) {
                     if ((tmp_latitude.compareTo(latitude) != 0) && !binding.latInput.hasFocus()) {
                         latitude = tmp_latitude;
@@ -73,7 +87,6 @@ public class MainActivity extends AppCompatActivity {
         };
 
         registerReceiver(br, new IntentFilter(BROADCAST_ACTION));
-        mSettings = getPreferences(Context.MODE_PRIVATE);
 
         if (!state) {
             if(mSettings.contains(PREFERENCES_LAT)) {
@@ -90,7 +103,6 @@ public class MainActivity extends AppCompatActivity {
 
 
         Log.d(LOG_TAG, "binding...Input.setText " + latitude + " " + longitude);
-        setButtonColor(state);
 
         binding.latInput.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             public void onFocusChange(View v, boolean hasFocus) {
@@ -181,13 +193,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        binding.settings.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Log.i(LOG_TAG, "settings call");
-                startActivity(new Intent(Settings.ACTION_SETTINGS));
-            }
-        });
-
         binding.devSettings.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Log.i(LOG_TAG, "settings call");
@@ -201,6 +206,11 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(v.getContext(), InfoActivity.class));
             }
         });
+
+        binding.switchMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            route_switch = isChecked;
+            setOnRouteSwitchAttr(route_switch);
+        });
     }
 
     @Override
@@ -209,8 +219,10 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = mSettings.edit();
         editor.putFloat(PREFERENCES_LAT, latitude);
         editor.putFloat(PREFERENCES_LON, longitude);
+        editor.putBoolean(PREFERENCES_STATE, route_switch);
         editor.apply();
-        Log.d(LOG_TAG, "onPause; latitude " + latitude + "; longitude " + longitude);
+        Log.d(LOG_TAG, "onPause; latitude " + latitude + "; longitude " +
+                longitude + "; route_switch " + route_switch);
     }
 
     @Override
@@ -235,20 +247,34 @@ public class MainActivity extends AppCompatActivity {
         binding.lonInput.clearFocus();
     }
 
-    private void setButtonColor(boolean state) {
-        binding.autofillButton.setBackgroundColor(getResources().getColor(R.color.unselected));
-        if (state) {
-            binding.onButton.setBackgroundColor(getResources().getColor(R.color.selected));
-            binding.offButton.setBackgroundColor(getResources().getColor(R.color.unselected));
-            binding.onButton.setTextColor(getResources().getColor(R.color.text_color_selected));
-            binding.offButton.setTextColor(getResources().getColor(R.color.text_color_base));
+    private void set_state_semaphore(Boolean service_state) {
+        if (service_state) {
+            binding.semaphore.setColorFilter(getResources().getColor(R.color.on_service));
+            Log.i(LOG_TAG, "GREEN call");
         } else {
-            binding.onButton.setBackgroundColor(getResources().getColor(R.color.unselected));
-            binding.offButton.setBackgroundColor(getResources().getColor(R.color.selected));
-            binding.onButton.setTextColor(getResources().getColor(R.color.text_color_base));
-            binding.offButton.setTextColor(getResources().getColor(R.color.text_color_selected));
-        };
+            binding.semaphore.setColorFilter(getResources().getColor(R.color.off_service));
+            Log.i(LOG_TAG, "RED call");
+        }
     }
+
+    private void setOnRouteSwitchAttr(boolean route_switch) {
+        if (route_switch) {
+            binding.staticItems.setVisibility(View.GONE);
+            binding.routeItems.setVisibility(View.VISIBLE);
+        } else {
+            binding.routeItems.setVisibility(View.GONE);
+            binding.staticItems.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void setIsPickedAttr(boolean picked) {
+        if (picked) {
+            binding.selectedCv.setVisibility(View.VISIBLE);
+        } else {
+            binding.selectedCv.setVisibility(View.GONE);
+        }
+    }
+
 
     private boolean getMockLocationServiceState() {
         boolean state = false;

@@ -19,4 +19,8 @@
         Put coordinates or select Ekibastuz, then press ON.
         Force-stop you navi app in user settings and start app again.
     </string>
+    <string name="speed">Speed</string>
+    <string name="pick">Pick track</string>
+    <string name="route">Route mode</string>
+    <string name="state">State</string>
 </resources>

@@ -11,7 +11,6 @@
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/background"
         android:fitsSystemWindows="true">
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -27,7 +26,7 @@
                 android:background="@android:color/transparent"
                 android:layout_margin="12dp"
                 tools:ignore="RtlSymmetry"
-                app:tint="@color/text_color_base">
+                >
             </ImageButton>
         </androidx.constraintlayout.widget.ConstraintLayout>
         <FrameLayout
