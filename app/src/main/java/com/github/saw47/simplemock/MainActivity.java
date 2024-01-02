@@ -1,14 +1,20 @@
 package com.github.saw47.simplemock;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.PorterDuff;
+import android.net.Uri;
 import android.os.Bundle;
+
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.provider.Settings;
@@ -27,13 +33,17 @@ public class MainActivity extends AppCompatActivity {
 
     private float latitude;
     private float longitude;
+    private int speed;
+
     private boolean state;
     private boolean route_switch;
-    private boolean is_picked; // TODO not impl
+    private String picked_uri = "";
 
     public static final String PREFERENCES_LAT = "latitude";
     public static final String PREFERENCES_LON = "longitude";
     public static final String PREFERENCES_STATE = "switch";
+    public static final String PREFERENCES_URI = "uri";
+    public static final String PREFERENCES_SPEED = "speed";
     private SharedPreferences mSettings;
 
     BroadcastReceiver br;
@@ -42,6 +52,25 @@ public class MainActivity extends AppCompatActivity {
     public final static String LAT_SERVICE = "lat";
     public final static String LON_SERVICE = "lon";
     public final static String BROADCAST_ACTION = "com.github.saw47.simplemock.servicebroadcast";
+
+    ActivityResultLauncher<Intent> mStartForResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if(result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        if (data != null) {
+                            Uri uri = data.getData();
+                            assert uri != null;
+                            String filePath = uri.getPath();
+                            picked_uri = (filePath != null) ? filePath : "";
+                            setPickerAttr(picked_uri);
+                            Log.d(LOG_TAG, "onActivityResult uri " + uri.toString());
+                            Log.d(LOG_TAG, "onActivityResult path " + filePath);
+                        }
+                    }
+                }
+            });
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @Override
@@ -56,7 +85,17 @@ public class MainActivity extends AppCompatActivity {
             Log.d(LOG_TAG, "PREFERENCES_STATE route switch " + route_switch);
         }
 
-        setIsPickedAttr(is_picked);
+        if (mSettings.contains(PREFERENCES_URI)) {
+            picked_uri = mSettings.getString(PREFERENCES_URI,"");
+            setPickerAttr(picked_uri);
+        }
+
+        if (mSettings.contains(PREFERENCES_SPEED)) {
+            speed = mSettings.getInt(PREFERENCES_SPEED,0);
+            binding.speedInput.setText(String.valueOf(speed));
+        }
+
+        setPickerAttr(picked_uri);
         setOnRouteSwitchAttr(route_switch);
         binding.switchMode.setChecked(route_switch);
 
@@ -69,7 +108,6 @@ public class MainActivity extends AppCompatActivity {
                 state = intent.getBooleanExtra(STATE_SERVICE, false);
                 Float tmp_latitude = intent.getFloatExtra(LAT_SERVICE, 0.00F);
                 Float tmp_longitude = intent.getFloatExtra(LON_SERVICE, 0.00F);
-
                 set_state_semaphore(state);
                 if (state) {
                     if ((tmp_latitude.compareTo(latitude) != 0) && !binding.latInput.hasFocus()) {
@@ -81,9 +119,8 @@ public class MainActivity extends AppCompatActivity {
                         binding.lonInput.setText(String.format(Locale.US,"%.6f", longitude));
                     }
                 }
-
                 Log.d(LOG_TAG, "onReceive " + latitude + " " + longitude);
-                    }
+            }
         };
 
         registerReceiver(br, new IntentFilter(BROADCAST_ACTION));
@@ -144,17 +181,48 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        binding.speedInput.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            public void onFocusChange(View v, boolean hasFocus) {
+                int tempSpeed;
+                if(!hasFocus) {
+                    try {
+                        tempSpeed = Integer.parseInt(binding.speedInput.getText().toString());
+                        binding.speedInput.setText(String.valueOf(tempSpeed));
+                        if (tempSpeed != speed) {
+                            speed = tempSpeed;
+                            if (getMockLocationServiceState()) {
+                                startMockLocationService();
+                            }
+                        }
+                        Log.i(LOG_TAG, "onFocusChange speed is ok -> " + speed);
+                    } catch (NumberFormatException | NullPointerException e) {
+                        Log.i(LOG_TAG, "onFocusChange speed is not int -> " + e);
+                    }
+                }
+            }
+        });
+
         binding.onButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                clearFocus();
-                startMockLocationService();
+                setMockLocationServiceState(true);
+            }
+        });
+
+        binding.onRouteButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                setMockLocationServiceState(true);
             }
         });
 
         binding.offButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                clearFocus();
-                stopMockLocationService();
+                setMockLocationServiceState(false);
+            }
+        });
+
+        binding.offRouteButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                setMockLocationServiceState(false);
             }
         });
 
@@ -168,6 +236,17 @@ public class MainActivity extends AppCompatActivity {
                 if (getMockLocationServiceState()) {
                     startMockLocationService();
                 }
+            }
+        });
+
+        binding.autofillButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                stopMockLocationService();
+                latitude = longitude = 0F;
+                binding.latInput.setText(String.format(Locale.US,"%.6f", latitude));
+                binding.lonInput.setText(String.format(Locale.US,"%.6f", longitude));
+                return true;
             }
         });
 
@@ -208,8 +287,30 @@ public class MainActivity extends AppCompatActivity {
         });
 
         binding.switchMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            stopMockLocationService();
             route_switch = isChecked;
             setOnRouteSwitchAttr(route_switch);
+        });
+
+        binding.pickRouteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("*/*");
+                mStartForResult.launch(intent);
+            }
+        });
+
+        binding.pickRouteButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                stopMockLocationService();
+                picked_uri = "";
+                speed = 0;
+                binding.speedInput.setText(String.valueOf(speed));
+                setPickerAttr(picked_uri);
+                return true;
+            }
         });
     }
 
@@ -220,6 +321,8 @@ public class MainActivity extends AppCompatActivity {
         editor.putFloat(PREFERENCES_LAT, latitude);
         editor.putFloat(PREFERENCES_LON, longitude);
         editor.putBoolean(PREFERENCES_STATE, route_switch);
+        editor.putString(PREFERENCES_URI, picked_uri);
+        editor.putInt(PREFERENCES_SPEED, speed);
         editor.apply();
         Log.d(LOG_TAG, "onPause; latitude " + latitude + "; longitude " +
                 longitude + "; route_switch " + route_switch);
@@ -245,6 +348,7 @@ public class MainActivity extends AppCompatActivity {
     private void clearFocus() {
         binding.latInput.clearFocus();
         binding.lonInput.clearFocus();
+        binding.speedInput.clearFocus();
     }
 
     private void set_state_semaphore(Boolean service_state) {
@@ -267,14 +371,29 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void setIsPickedAttr(boolean picked) {
-        if (picked) {
+    private void setPickerAttr(String picked) {
+        Log.i(LOG_TAG, "setIsPickedAttr call " + picked);
+        String [] text = picked.split(":");
+        if (text.length > 1) {
+            binding.selected.setText(text[text.length - 1]);
+        } else
+            binding.selected.setText(picked);
+        if (!picked.equals("")) {
             binding.selectedCv.setVisibility(View.VISIBLE);
         } else {
             binding.selectedCv.setVisibility(View.GONE);
         }
     }
 
+    private void setMockLocationServiceState(boolean is_started) {
+        if (is_started) {
+            clearFocus();
+            startMockLocationService();
+        } else {
+            clearFocus();
+            stopMockLocationService();
+        }
+    }
 
     private boolean getMockLocationServiceState() {
         boolean state = false;
